@@ -1,0 +1,23 @@
+[project]
+name = "bedrock-snippet"
+version = "0.1.0"
+description = "Code Templates for LLM Project on AWS Bedrock"
+authors = [
+    {name = "Sunsik Kim", email="siksicking@gmail.com"}
+]
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.36.0",
+    "jupyterlab>=4.3.4",
+    "pydantic>=2.10.5",
+    "python-dotenv>=1.0.1",
+    "typer>=0.15.1",
+]
+
+[project.scripts]
+bedrock-snippet = "bedrock_snippet:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
