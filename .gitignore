@@ -1,2 +1,6 @@
 .env
 .python-version
+*.pyc
+__pycache__
+.idea
+.ipynb_checkpoints
