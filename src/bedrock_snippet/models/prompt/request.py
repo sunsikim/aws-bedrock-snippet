@@ -35,6 +35,11 @@ class CreatePromptRequest(BaseModel):
 
 
 class UpdatePromptRequest(BaseModel):
+    promptIdentifier: str = Field(
+        ...,
+        pattern=r"^([0-9a-zA-Z]{10})|(arn:aws:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:prompt/[0-9a-zA-Z]{10})(?::[0-9]{1,5})?$",
+        description="The unique identifier of the prompt that you want to update.",
+    )
     name: str = Field(
         ...,
         pattern=r"^([0-9a-zA-Z][_-]?){1,100}$",
@@ -59,39 +64,4 @@ class UpdatePromptRequest(BaseModel):
         max_length=2048,
         pattern=r"^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$",
         description="The Amazon Resource Name (ARN) of the KMS key to encrypt the prompt.",
-    )
-
-
-class CreatePromptVersionRequest(BaseModel):
-    promptIdentifier: str = Field(
-        ...,
-        pattern=r"^([0-9a-zA-Z]{10})|(arn:aws:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:prompt/[0-9a-zA-Z]{10})(?::[0-9]{1,5})?$",
-        description="The unique identifier of the prompt that you want to create a version of.",
-    )
-
-
-class GetPromptRequest(BaseModel):
-    promptIdentifier: str = Field(
-        ...,
-        pattern=r"^([0-9a-zA-Z]{10})|(arn:aws:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:prompt/[0-9a-zA-Z]{10})(?::[0-9]{1,5})?$",
-        description="The unique identifier of the prompt.",
-    )
-    promptVersion: Optional[str] = Field(
-        None,
-        pattern=r"^(DRAFT|[0-9]{0,4}[1-9][0-9]{0,4})$",
-        description="The version of the prompt about which you want to retrieve information. "
-        "Omit this field to return information about the working draft of the prompt.",
-    )
-
-
-class DeletePromptRequest(BaseModel):
-    promptIdentifier: str = Field(
-        ...,
-        pattern=r"^([0-9a-zA-Z]{10})|(arn:aws:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:prompt/[0-9a-zA-Z]{10})(?::[0-9]{1,5})?$",
-        description="The unique identifier of the prompt.",
-    )
-    promptVersion: Optional[str] = Field(
-        None,
-        pattern=r"^(DRAFT|[0-9]{0,4}[1-9][0-9]{0,4})$",
-        description="The version of the prompt to delete. If omitted, whole prompt will be deleted.",
     )
