@@ -34,6 +34,20 @@ class CreatePromptRequest(BaseModel):
     )
 
 
+class CreatePromptVersionRequest(BaseModel):
+    promptIdentifier: str = Field(
+        ...,
+        pattern=r"^([0-9a-zA-Z]{10})|(arn:aws:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:prompt/[0-9a-zA-Z]{10})(?::[0-9]{1,5})?$",
+        description="The unique identifier of the prompt that you want to update.",
+    )
+    description: Optional[str] = Field(
+        None, min_length=1, max_length=200, description="A description for the prompt."
+    )
+    tags: Optional[Dict[str, str]] = Field(
+        None, description="Tags to attach to the prompt."
+    )
+
+
 class UpdatePromptRequest(BaseModel):
     promptIdentifier: str = Field(
         ...,
