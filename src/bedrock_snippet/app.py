@@ -2,7 +2,7 @@ import os
 import boto3
 import streamlit as st
 from dotenv import load_dotenv
-from bedrock_snippet.services.prompt_management import PromptManagementService
+from bedrock_snippet.old_services.prompt_management import PromptManagementService
 
 
 @st.cache_resource

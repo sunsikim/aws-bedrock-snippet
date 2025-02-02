@@ -2,6 +2,11 @@ import boto3
 import pandas as pd
 from typing import Optional
 from bedrock_snippet.models.prompt import *
+from bedrock_snippet.models.request import (
+    CreatePromptRequest,
+    CreatePromptVersionRequest,
+    UpdatePromptRequest,
+)
 
 
 class PromptManagementService:
@@ -9,10 +14,10 @@ class PromptManagementService:
     Method for CRUD operations on prompt object with certain name
     """
 
-    def __init__(self, name: str, session: boto3.Session):
-        self._prompt_name = name
+    def __init__(self, prompt_name: str, session: boto3.Session):
+        self._prompt_name = prompt_name
         self._session = session
-        self._default_variant = f"{name}-variant"
+        self._default_variant = f"{prompt_name}-variant"
         self._client = session.client("bedrock-agent")
 
     def create_prompt(

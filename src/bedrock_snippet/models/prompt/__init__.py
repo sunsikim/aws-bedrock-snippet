@@ -11,11 +11,6 @@ from bedrock_snippet.models.prompt.configuration import (
     PromptInferenceConfiguration,
 )
 from bedrock_snippet.models.prompt.variant import PromptVariant
-from bedrock_snippet.models.prompt.request import (
-    CreatePromptRequest,
-    CreatePromptVersionRequest,
-    UpdatePromptRequest,
-)
 
 __all__ = [
     "Message",
@@ -27,7 +22,4 @@ __all__ = [
     "PromptModelInferenceConfiguration",
     "PromptInferenceConfiguration",
     "PromptVariant",
-    "CreatePromptRequest",
-    "CreatePromptVersionRequest",
-    "UpdatePromptRequest",
 ]
