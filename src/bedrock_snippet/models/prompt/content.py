@@ -1,5 +1,5 @@
-from typing import List
-from pydantic import BaseModel, Field, field_validator
+from typing import List, Optional, Self
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class ContentBlock(BaseModel):
@@ -20,6 +20,32 @@ class Message(BaseModel):
             raise ValueError("Value of role must be one of ('user', 'assistant').")
         else:
             return role
+
+
+class AnthropicContentBlock(BaseModel):
+    type: str = Field(..., pattern="^(image|text)$", description="The type of content.")
+    text: Optional[str] = Field(None, description="")
+    image: Optional[str] = Field(
+        None, description="base64 encoded image which is utf8 decoded"
+    )
+
+    @model_validator(mode="after")
+    def validate_content(self) -> Self:
+        if self.type == "text" and (self.image is not None or self.text is None):
+            raise ValueError(
+                "Content type is set to 'text' but image field is not None or text field is None"
+            )
+        elif self.type == "image" and (self.image is None or self.text is not None):
+            raise ValueError(
+                "Content type is set to 'image' but image field is None or text field is not None"
+            )
+        return self
+
+
+class AnthropicMessage(Message):
+    content: List[AnthropicContentBlock] = Field(
+        ..., description="The content in the message."
+    )
 
 
 class PromptInputVariable(BaseModel):
