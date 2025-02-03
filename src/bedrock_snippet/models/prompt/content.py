@@ -22,22 +22,28 @@ class Message(BaseModel):
             return role
 
 
+class AnthropicImageContent(BaseModel):
+    type: str = "base64"
+    media_type: str = Field(..., pattern="^image/(jpg|png|webp|gif)$")
+    data: str = Field(..., description="The base64 encoded image.")
+
+
 class AnthropicContentBlock(BaseModel):
     type: str = Field(..., pattern="^(image|text)$", description="The type of content.")
-    text: Optional[str] = Field(None, description="")
-    image: Optional[str] = Field(
-        None, description="base64 encoded image which is utf8 decoded"
+    text: Optional[str] = Field(None, description="Text content of a prompt")
+    source: Optional[AnthropicImageContent] = Field(
+        None, description="information on base64 encoded image which is utf8 decoded"
     )
 
     @model_validator(mode="after")
     def validate_content(self) -> Self:
-        if self.type == "text" and (self.image is not None or self.text is None):
+        if self.type == "text" and (self.source is not None or self.text is None):
             raise ValueError(
-                "Content type is set to 'text' but image field is not None or text field is None"
+                "Content type is set to 'text' but source field is not None or text field is None"
             )
-        elif self.type == "image" and (self.image is None or self.text is not None):
+        elif self.type == "image" and (self.source is None or self.text is not None):
             raise ValueError(
-                "Content type is set to 'image' but image field is None or text field is not None"
+                "Content type is set to 'image' but source field is None or text field is not None"
             )
         return self
 

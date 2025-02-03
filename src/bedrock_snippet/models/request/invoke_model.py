@@ -1,4 +1,3 @@
-import json
 from typing import List, Annotated, Optional, Self
 from pydantic import BaseModel, Field, model_validator
 from bedrock_snippet.models.prompt.content import AnthropicMessage
@@ -102,5 +101,5 @@ class AnthropicModelRequest(BaseModel):
         assert isinstance(
             self.body, AnthropicModelRequestBody
         ), "Pass raw AnthropicModelRequestBody instance without json encode"
-        self.body = self.body.model_dump_json()
+        self.body = self.body.model_dump_json(exclude_none=True)
         return self

@@ -1,3 +1,6 @@
+import json
+import pathlib
+
 import boto3
 from base64 import b64encode
 from typing import Dict, Optional
@@ -5,6 +8,7 @@ from bedrock_snippet.models.prompt import (
     PromptVariant,
     AnthropicMessage,
     AnthropicContentBlock,
+    AnthropicImageContent,
 )
 from bedrock_snippet.models.request import (
     AnthropicModelRequestBody,
@@ -21,6 +25,7 @@ class PromptInvocationService:
         self._session = session
         self._default_variant = f"{prompt_name}-variant"
         self._bedrock_agent = session.client("bedrock-agent")
+        self._bedrock_runtime = session.client("bedrock-runtime")
         variant = PromptVariant(**self.get_prompt(version).get("variants")[0])
         self._model_id = variant.modelId
         self._default_body = self._parse_variant(variant)
@@ -37,6 +42,35 @@ class PromptInvocationService:
                 promptIdentifier=self._get_prompt_id(),
                 promptVersion=str(version),
             )
+
+    def invoke_multimodal(
+        self,
+        image_path: pathlib.Path,
+        version: Optional[int] = None,
+        return_text_only: bool = False,
+    ):
+        source = AnthropicImageContent(
+            media_type=f"image/{image_path.suffix[1:]}",
+            data=b64encode(open(image_path, "rb").read()).decode("utf8"),
+        )
+        image_block = AnthropicContentBlock(type="image", source=source)
+        if version is None:
+            body = self._default_body.copy()
+            model_id = self._model_id
+        else:
+            variant = PromptVariant(**self.get_prompt(version).get("variants")[0])
+            body = self._parse_variant(variant)
+            model_id = variant.modelId
+        body.messages[0].content.append(image_block)
+        request = AnthropicModelRequest(modelId=model_id, body=body)
+        response = self._bedrock_runtime.invoke_model(
+            **request.model_dump(exclude_none=True)
+        )
+        result = json.loads(response.get("body").read())
+        if return_text_only:
+            return result.get("content")[0].get("text")
+        else:
+            return result
 
     def invoke_text(
         self, prompt_variables: Dict[str, str], version: Optional[int] = None
@@ -59,24 +93,6 @@ class PromptInvocationService:
             stop_sequences=inference_config.stopSequences,
             temperature=inference_config.temperature,
             top_p=inference_config.topP,
-        )
-
-    def invoke_multimodal(self, image: bytes, version: Optional[int] = None):
-        if version is None:
-            body = self._default_body
-            model_id = self._model_id
-        else:
-            variant = PromptVariant(**self.get_prompt(version).get("variants")[0])
-            body = self._parse_variant(variant)
-            model_id = variant.modelId
-        image_block = AnthropicContentBlock(
-            type="image", image=b64encode(image).decode("utf8")
-        )
-        image_message = AnthropicMessage(role="user", content=[image_block])
-        body.messages.append(image_message)
-        return AnthropicModelRequest(
-            modelId=model_id,
-            body=body,
         )
 
     def _is_prompt_created(self) -> bool:
