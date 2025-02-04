@@ -47,7 +47,9 @@ class PromptInvocationService:
         self,
         image_path: pathlib.Path,
         version: Optional[int] = None,
-        return_text_only: bool = False,
+        return_result_only: bool = False,
+        guardrail_identifier: Optional[str] = None,
+        guardrail_version: Optional[int | str] = "DRAFT",
     ):
         source = AnthropicImageContent(
             media_type=f"image/{image_path.suffix[1:]}",
@@ -62,12 +64,20 @@ class PromptInvocationService:
             body = self._parse_variant(variant)
             model_id = variant.modelId
         body.messages[0].content.append(image_block)
-        request = AnthropicModelRequest(modelId=model_id, body=body)
+        if guardrail_identifier is not None:
+            request = AnthropicModelRequest(
+                modelId=model_id,
+                body=body,
+                guardrailIdentifier=guardrail_identifier,
+                guardrailVersion=str(guardrail_version),
+            )
+        else:
+            request = AnthropicModelRequest(modelId=model_id, body=body)
         response = self._bedrock_runtime.invoke_model(
             **request.model_dump(exclude_none=True)
         )
         result = json.loads(response.get("body").read())
-        if return_text_only:
+        if return_result_only:
             return result.get("content")[0].get("text")
         else:
             return result

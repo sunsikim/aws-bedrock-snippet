@@ -7,6 +7,10 @@ from bedrock_snippet.models.request.invoke_model import (
     AnthropicModelRequestBody,
     AnthropicModelRequest,
 )
+from bedrock_snippet.models.request.guardrail_management import (
+    CreateGuardrailRequest,
+    UpdateGuardrailRequest,
+)
 
 
 __all__ = [
@@ -15,4 +19,6 @@ __all__ = [
     "UpdatePromptRequest",
     "AnthropicModelRequestBody",
     "AnthropicModelRequest",
+    "CreateGuardrailRequest",
+    "UpdateGuardrailRequest",
 ]

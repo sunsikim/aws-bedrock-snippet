@@ -85,7 +85,7 @@ class PromptManagementService:
         resource_info = self._client.list_tags_for_resource(resourceArn=prompt_arn)
         result.append(
             {
-                "version": version,
+                "version": "DRAFT",
                 "variant": prompt_info.get("variants")[0],
                 "tags": resource_info.get("tags"),
             }
@@ -99,7 +99,7 @@ class PromptManagementService:
                 )
                 result.append(
                     {
-                        "version": version,
+                        "version": str(version),
                         "variant": prompt_info.get("variants")[0],
                         "tags": resource_info.get("tags"),
                     }
