@@ -30,7 +30,7 @@ class PromptManagementService:
         max_tokens: int = 2000,
         temperature: float = 1.0,
         top_k: int = 15,
-        input_variables: Optional[list[dict[str, str]]] = None,
+        input_variables: Optional[list[str]] = None,
         tags: Optional[dict[str, str]] = None,
         stop_sequences: Optional[list[str]] = None,
     ):
@@ -177,10 +177,15 @@ class PromptManagementService:
         input_variables: Optional[list[str]] = None,
     ) -> PromptTemplateConfiguration:
         user_message = Message(role="user", content=[ContentBlock(text=user_prompt)])
+        variables = (
+            []
+            if input_variables is None
+            else [PromptInputVariable(name=variable) for variable in input_variables]
+        )
         chat_prompt_template_config = ChatPromptTemplateConfiguration(
             messages=[user_message],
             system=[SystemContentBlock(text=system_prompt)],
-            inputVariables=[] if input_variables is None else input_variables,
+            inputVariables=variables,
         )
         return PromptTemplateConfiguration(chat=chat_prompt_template_config)
 

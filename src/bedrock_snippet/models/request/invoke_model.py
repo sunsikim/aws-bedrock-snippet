@@ -4,53 +4,53 @@ from bedrock_snippet.models.prompt.content import AnthropicMessage
 
 
 class AnthropicModelRequestBody(BaseModel):
-    system: Optional[str] = Field(
-        default=None,
-        description="The text in the system prompt.",
-    )
+    # system: Optional[str] = Field(
+    #     default=None,
+    #     description="The text in the system prompt.",
+    # )
     messages: List[AnthropicMessage] = (
         Field(..., description="Contains messages in the chat for the prompt."),
     )
-    max_tokens: Annotated[
-        int,
-        Field(
-            default=2000,
-            ge=0,
-            le=4096,
-            description="The maximum number of tokens to return in the response.",
-        ),
-    ]
-    stop_sequences: Annotated[
-        List[str],
-        Field(
-            default_factory=list,
-            min_length=0,
-            max_length=4,
-            description="A list of strings that define sequences after which the model will stop generating.",
-        ),
-    ]
-    temperature: Annotated[
-        float,
-        Field(
-            default=1.0,
-            ge=0.0,
-            le=1.0,
-            description="Choose a lower value for more predictable outputs and a higher value for more random outputs.",
-        ),
-    ]
-    top_p: Annotated[
-        float,
-        Field(
-            default=1.0,
-            ge=0.0,
-            le=1.0,
-            description="The percentage of most-likely candidates that the model considers for the next token.",
-        ),
-    ]
-    top_k: Annotated[int, Field(ge=1, le=500)] = Field(
-        default=100,
-        description="Determines how many of the most likely tokens should be considered when generating a response.",
-    )
+    # max_tokens: Annotated[
+    #     int,
+    #     Field(
+    #         default=2000,
+    #         ge=0,
+    #         le=4096,
+    #         description="The maximum number of tokens to return in the response.",
+    #     ),
+    # ]
+    # stop_sequences: Annotated[
+    #     List[str],
+    #     Field(
+    #         default_factory=list,
+    #         min_length=0,
+    #         max_length=4,
+    #         description="A list of strings that define sequences after which the model will stop generating.",
+    #     ),
+    # ]
+    # temperature: Annotated[
+    #     float,
+    #     Field(
+    #         default=1.0,
+    #         ge=0.0,
+    #         le=1.0,
+    #         description="Choose a lower value for more predictable outputs and a higher value for more random outputs.",
+    #     ),
+    # ]
+    # top_p: Annotated[
+    #     float,
+    #     Field(
+    #         default=1.0,
+    #         ge=0.0,
+    #         le=1.0,
+    #         description="The percentage of most-likely candidates that the model considers for the next token.",
+    #     ),
+    # ]
+    # top_k: Annotated[int, Field(ge=1, le=500)] = Field(
+    #     default=100,
+    #     description="Determines how many of the most likely tokens should be considered when generating a response.",
+    # )
     anthropic_version: str = Field(
         default="bedrock-2023-05-31", description="Anthropic version"
     )

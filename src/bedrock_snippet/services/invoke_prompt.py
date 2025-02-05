@@ -22,13 +22,20 @@ class PromptInvocationService:
         self, prompt_name: str, session: boto3.Session, version: Optional[int] = None
     ):
         self._prompt_name = prompt_name
-        self._session = session
-        self._default_variant = f"{prompt_name}-variant"
         self._bedrock_agent = session.client("bedrock-agent")
         self._bedrock_runtime = session.client("bedrock-runtime")
-        variant = PromptVariant(**self.get_prompt(version).get("variants")[0])
+        prompt_info = self.get_prompt(version)
+
+        self._prompt_arn = prompt_info.get("arn")
+        self._session = session
+
+        variant = PromptVariant(**prompt_info.get("variants")[0])
         self._model_id = variant.modelId
         self._default_body = self._parse_variant(variant)
+        self._required_variables = {
+            variable.name
+            for variable in variant.templateConfiguration.chat.inputVariables
+        }
 
     def get_prompt(self, version: Optional[int] = None):
         assert self._is_prompt_created(), f"Prompt '{self._prompt_name}' is not created"
@@ -46,7 +53,6 @@ class PromptInvocationService:
     def invoke_multimodal(
         self,
         image_path: pathlib.Path,
-        version: Optional[int] = None,
         return_result_only: bool = False,
         guardrail_identifier: Optional[str] = None,
         guardrail_version: Optional[int | str] = "DRAFT",
@@ -56,23 +62,17 @@ class PromptInvocationService:
             data=b64encode(open(image_path, "rb").read()).decode("utf8"),
         )
         image_block = AnthropicContentBlock(type="image", source=source)
-        if version is None:
-            body = self._default_body.copy()
-            model_id = self._model_id
-        else:
-            variant = PromptVariant(**self.get_prompt(version).get("variants")[0])
-            body = self._parse_variant(variant)
-            model_id = variant.modelId
+        body = self._default_body.copy()
         body.messages[0].content.append(image_block)
         if guardrail_identifier is not None:
             request = AnthropicModelRequest(
-                modelId=model_id,
+                modelId=self._model_id,
                 body=body,
                 guardrailIdentifier=guardrail_identifier,
                 guardrailVersion=str(guardrail_version),
             )
         else:
-            request = AnthropicModelRequest(modelId=model_id, body=body)
+            request = AnthropicModelRequest(modelId=self._model_id, body=body)
         response = self._bedrock_runtime.invoke_model(
             **request.model_dump(exclude_none=True)
         )
@@ -83,9 +83,35 @@ class PromptInvocationService:
             return result
 
     def invoke_text(
-        self, prompt_variables: Dict[str, str], version: Optional[int] = None
+        self,
+        prompt_variables: Dict[str, str],
+        return_result_only: bool = False,
+        guardrail_identifier: Optional[str] = None,
+        guardrail_version: Optional[int | str] = "DRAFT",
     ):
-        pass
+        input_variables = set(prompt_variables.keys())
+        missing_variables = self._required_variables.difference(input_variables)
+        if len(missing_variables) > 0:
+            raise ValueError(f"Value for ({missing_variables}) is missing")
+        variable_values = {k: {"text": v} for k, v in prompt_variables.items()}
+        body = json.dumps({"promptVariables": variable_values})
+
+        if guardrail_identifier is not None:
+            response = self._bedrock_runtime.invoke_model(
+                modelId=self._prompt_arn,
+                body=body,
+                guardrailIdentifier=guardrail_identifier,
+                guardrailVersion=str(guardrail_version),
+            )
+        else:
+            response = self._bedrock_runtime.invoke_model(
+                modelId=self._prompt_arn, body=body
+            )
+        result = json.loads(response.get("body").read())
+        if return_result_only:
+            return result.get("content")[0].get("text")
+        else:
+            return result
 
     def _parse_variant(self, variant: PromptVariant) -> AnthropicModelRequestBody:
         template_config = variant.templateConfiguration.chat
